@@ -1,8 +1,9 @@
 import os
+import re
 from openai import OpenAI
 from dotenv import load_dotenv
 from text_extraction import record_text_extraction, get_pdf_paths
-from embedding import chunk_splitting, embed_chunks
+from embedding import embed_chunks
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import LLMChain
@@ -19,6 +20,9 @@ if __name__ == "__main__":
 
     ## RAG - Tested with one document at the time
     test_doc_path = pdf_paths[3]
+    match = re.search(r"Acta.*(?=\.pdf$)", test_doc_path)
+
+    doc_name = match.group(0) if match else ""
 
     test_text_chunks = record_text_extraction(test_doc_path)
     embeddings = embed_chunks(test_text_chunks, 1500, 250, test_doc_path)
@@ -66,13 +70,23 @@ if __name__ == "__main__":
     ### CREATING CHAT OBJECT
     chat = LLMChain(llm=llm, prompt=prompt, memory=memory)
 
+    print("****" * 30)
+    print(
+        "\nBienvenido/a al sistema bot de consultas sobre las reuniones del Municipio de Quito"
+    )
+    print(f"Actualmente estamos en {doc_name}")
+    print("\nPara salir, escriba 'exit' o 'quit'")
+    print("\nEscriba su primera pregunta a continuación :")
+
     while True:
-        user_input = input("You: ")
+        user_input = input("User: ")
         if user_input.lower() in {"exit", "quit"}:
+            print("Esperamos haber contestado todas tus dudas ¡Hasta la próxima!")
             break
-        print("You:", user_input)
+
         results = retriever.invoke(user_input)
         context = "\n\n".join([doc.page_content for doc in results])
 
         response = chat.invoke({"input": user_input, "context": context})
         print("Bot:", response["text"])
+        print("\n")

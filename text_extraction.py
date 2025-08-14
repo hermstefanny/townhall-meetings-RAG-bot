@@ -1,6 +1,18 @@
 import fitz
-from pathlib import Path
 import os
+
+
+def get_pdf_paths(dir_name) -> list[str]:
+    script_directory = os.getcwd()
+    path_to_folder = os.path.join(script_directory, dir_name)
+
+    pdf_paths = [
+        os.path.abspath(os.path.join(path_to_folder, f))
+        for f in os.listdir(path_to_folder)
+        if f.lower().endswith(".pdf")
+    ]
+
+    return pdf_paths
 
 
 def record_text_extraction(record_file_path) -> str:
@@ -34,17 +46,3 @@ def record_text_extraction(record_file_path) -> str:
     record_doc.close()
 
     return record_text
-
-
-def get_pdf_paths(dir_name) -> list[str]:
-    script_directory = os.getcwd()
-    print(f"Current working directory: {os.getcwd()}")
-    path_to_folder = os.path.join(script_directory, dir_name)
-
-    pdf_paths = [
-        os.path.abspath(os.path.join(path_to_folder, f))
-        for f in os.listdir(path_to_folder)
-        if f.lower().endswith(".pdf")
-    ]
-
-    return pdf_paths
